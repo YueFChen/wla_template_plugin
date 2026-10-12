@@ -1,6 +1,6 @@
 # Wonderland Plugin Template
 
-这是 Wonderland 动态插件的公开起步模板仓库。模板包含最小可运行的 Rust 后端、React UI、严格接口契约、校验与打包工具。插件源码和 Git 历史独立于 Core；模板不把业务默认权限或服务依赖带给新插件。
+这是 Wonderland 动态插件的公开起步模板仓库。模板包含最小可运行的 Rust 后端、React UI、严格接口契约、校验与打包工具。插件源码和 Git 历史独立于 Core；模板不预设业务配置和插件依赖。
 
 ## 创建插件仓库
 
@@ -34,15 +34,15 @@ Core 0.1.8 默认提供隔离 iframe 插件 UI，`pnpm debug` 即可使用。`de
 
 ## 目录与接口
 
-- `package/manifest.json` 声明插件身份、兼容范围、UI 入口、贡献点和所需能力。manifest 使用严格 schema，不要添加未定义字段。
+- `package/manifest.json` 使用 manifest v3，声明插件身份、兼容范围、UI 入口、贡献点和插件依赖。manifest 使用严格 schema，不要添加未定义字段。
 - `package/contract.json` 声明 UI 可调用的后端方法和数据结构；修改接口时同步更新 Rust 实现。
 - `src/` 是独立 Rust 后端，通过 `wonderland-plugin-sdk` 接入 Core。标准输出只写协议帧，诊断写到标准错误。
 - `src/commands.rs` 按 contract 分派方法，业务增多后再按领域拆分模块。
 - `ui/` 是独立 React 应用：`App.tsx` 负责宿主生命周期，`api/` 封装 UI Bridge，`pages/` 放页面。不要直接调用 Tauri 命令。
 - Activity 是 Workspace 主工作区入口；View 是 Core 承载的辅助视图。入口和容器均由 Core 管理。
-- `capabilities` 声明插件请求的 Core 服务授权。插件后端仍以当前用户权限运行，Core 不提供操作系统沙箱；安装者应审阅插件代码。
+- 普通 Core 服务默认可用，文件服务统一适配本地与远程环境。插件后端仍以当前用户身份运行；安装者应审阅插件代码。
 
-详见 [PLUGIN_STRUCTURE.md](PLUGIN_STRUCTURE.md)，其中说明目录职责、manifest/contract、权限、用户数据、插件服务以及可选 Agent/MCP 适配器的边界。
+详见 [PLUGIN_STRUCTURE.md](PLUGIN_STRUCTURE.md)，其中说明目录职责、manifest/contract、宿主服务、用户数据、插件依赖以及可选 Agent/MCP 适配器的边界。
 
 ## 构建与发布
 

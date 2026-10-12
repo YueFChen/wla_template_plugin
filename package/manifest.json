@@ -1,5 +1,5 @@
 {
-  "manifestVersion": 2,
+  "manifestVersion": 3,
   "id": "template_plugin",
   "name": "Wonderland Plugin Template",
   "version": "0.1.1",
@@ -51,6 +51,5 @@
     "transport": "stdio-ndjson-v1",
     "supportsServiceContext": true
   },
-  "contract": "contract.json",
-  "capabilities": []
+  "contract": "contract.json"
 }

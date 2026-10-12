@@ -24,7 +24,7 @@ const cargoName = cargoToml.match(/^name\s*=\s*"([a-z0-9_-]+)"/m)?.[1]
 const cargoVersion = cargoToml.match(/^version\s*=\s*"([^"\n]+)"/m)?.[1]
 const activityCount = manifest.ui?.contributions?.filter((item) => item.kind === 'activity').length ?? 0
 
-if (manifest.manifestVersion !== 2) fail('manifestVersion must be 2.')
+if (manifest.manifestVersion !== 3) fail('manifestVersion must be 3.')
 if (manifest.backend?.supportsServiceContext !== true) fail('updated SDK context support is required.')
 if (manifest.remoteAccess !== undefined && typeof manifest.remoteAccess !== 'boolean') fail('remoteAccess must be a boolean when declared.')
 if (manifest.hostCompatibility?.minCoreVersion !== '0.1.8') fail('template requires the Core 0.1.8 SDK baseline.')
@@ -42,10 +42,11 @@ if (!backendSource.includes(`const PLUGIN_ID: &str = ${JSON.stringify(manifest.i
 if (!backendSource.includes(`const PLUGIN_NAME: &str = ${JSON.stringify(manifest.name)};`)) fail('Rust backend name differs from manifest name.')
 if (!uiApiSource.includes(`createPluginHostClient('${manifest.id}')`)) fail('UI Bridge client ID differs from manifest ID.')
 if (!uiStyles.includes("@import '@wonderland/ui/plugin-theme.css';")) fail('UI must import the shared Core plugin theme stylesheet.')
-if (Object.hasOwn(manifest, 'author')) fail('author is repository metadata, not a manifest v2 field.')
+if (Object.hasOwn(manifest, 'author')) fail('author is repository metadata, not a manifest v3 field.')
 if (!packageMetadata.author || !uiMetadata.author || !cargoToml.match(/^authors\s*=\s*\[[^\]]+\]$/m)) fail('author metadata must be present in Cargo and npm packages.')
 if (packageMetadata.version !== manifest.version || uiMetadata.version !== manifest.version) fail('Cargo, npm, and manifest versions must match.')
-if (manifest.capabilities?.length !== 0) fail('the starter template must request no host capabilities by default.')
+if (['capabilities', 'networkPublicHosts', 'provides', 'requires'].some((key) => Object.hasOwn(manifest, key))) fail('manifest v3 must not declare removed host capability or service fields.')
+if (manifest.dependencies?.length) fail('the starter template declares no plugin dependencies by default.')
 
 for (const relative of [
   'README.md',
