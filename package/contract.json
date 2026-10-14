@@ -24,12 +24,11 @@
           },
           "version": {
             "type": "string",
-            "const": "0.1.1"
+            "const": "0.1.2"
           }
         },
         "additionalProperties": false
-      },
-      "timeoutMs": 5000
+      }
     }
   },
   "events": {}

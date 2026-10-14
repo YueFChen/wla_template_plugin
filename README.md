@@ -30,7 +30,7 @@ pnpm --dir .\plugins\my_plugin run debug
 
 `debug` 会构建 UI 和后端，再启动 Core 开发版。Core 只在 debug 构建读取开发包路径；安装时仍校验 manifest、contract、兼容性和包文件，并自动启用和启动开发插件。请先关闭现有 Core 开发版。修改代码后重新运行调试命令；当前不支持插件热重载。
 
-Core 0.1.8 默认提供隔离 iframe 插件 UI，`pnpm debug` 即可使用。`debug:ui` 保留为旧命令别名，无需实验开关。
+本模板使用配套 Core 0.2.0 SDK，清单支持范围为 `>=0.2.0, <0.3.0`。`pnpm debug` 使用隔离 iframe 插件 UI；`debug:ui` 保留为旧命令别名。
 
 ## 目录与接口
 
@@ -43,6 +43,23 @@ Core 0.1.8 默认提供隔离 iframe 插件 UI，`pnpm debug` 即可使用。`de
 - 普通 Core 服务默认可用，文件服务统一适配本地与远程环境。插件后端仍以当前用户身份运行；安装者应审阅插件代码。
 
 详见 [PLUGIN_STRUCTURE.md](PLUGIN_STRUCTURE.md)，其中说明目录职责、manifest/contract、宿主服务、用户数据、插件依赖以及可选 Agent/MCP 适配器的边界。
+
+## HTTP、文件与可选期限
+
+HTTP 请求统一通过 `HostClient::http_request`／`http_request_bytes`，响应保留状态、重复响应头和最终 URL。非 2xx 由插件解释，Core 不自动重试。认证可以省略；需要密钥时使用自身插件的密钥引用，不继承 Core 账号或分发凭据。
+
+```rust
+use wonderland_plugin_sdk::HttpRequestParams;
+
+let request = HttpRequestParams::get(url);
+let (response, bytes) = host.http_request_bytes(&request)?;
+// 由插件检查 response.status、response.headers 和业务内容。
+let file = host.export_bytes("report.bin", &bytes)?;
+```
+
+大响应可使用 `http_request` 后逐次 `stream_read`，不必聚合整段字节；提前停止时使用 `stream_close`。上传、导出和显式宿主文件读写复用字节流，不能把总文件内容塞进一个 NDJSON 帧。`export_bytes` 按块传输并返回本地文件或远程待下载回执；`read_file`／`write_file` 的显式路径指运行 Core 的宿主，访问设备文件选择仍由 Core 适配。
+
+contract 方法的 `timeoutMs` 省略或 `null` 表示不设总期限；正整数代表明确期限，父调用较短的期限仍有效。模板 `get_info` 不默认添加等待上限。需要请求期限时设置 `HttpRequestParams.timeout_ms` 或使用 `call_core_with_timeout`；取消及关闭流仍应处理。
 
 ## 构建与发布
 
@@ -66,6 +83,6 @@ pnpm run package:plugin
 
 CI 会先做独立的元数据检查，再从公开的 `YueFChen/Wonderland_Assistant` 仓库检出 Core，在 Windows 的 `plugins/template_plugin` 布局中构建和检查插件。需要测试其他 Core 仓库时，将仓库变量 `WONDERLAND_CORE_REPOSITORY` 设为其 `owner/name`；私有 Core 仓库还需配置可读取它的 `WONDERLAND_CORE_CHECKOUT_TOKEN` Secret。
 
-## Core 0.1.8 与远程访问
+## Core 0.2.0 与远程访问
 
 见 [CORE-COMPATIBILITY.md](CORE-COMPATIBILITY.md)，包括最低版本、远程声明和发布顺序。

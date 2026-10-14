@@ -57,7 +57,7 @@ my_plugin/
 - `hostCompatibility`、后端 protocol 和 UI bridge 兼容范围应覆盖真实测试过的 Core 版本，不要随意写宽。
 - 每个面向用户的插件声明一个 Activity。侧栏工具等辅助入口声明 View，并使用 `workspace.sidebar` integration。
 - `integrations` 只声明实际使用的宿主集成；`dependencies` 用 `{pluginId, versionReq, optional, methods}` 声明插件依赖，没有依赖时可省略。manifest v3 不接受旧授权和服务发现字段。
-- `contract.json` 给每个后端方法定义参数、返回值和超时。输入对象设置 `additionalProperties: false`，字符串、数组、整数及响应体设置合理上限；版本变化要同步 UI API、后端实现和测试。
+- `contract.json` 给每个后端方法定义参数、返回值和可选期限。`timeoutMs` 省略或 null 不设总期限；需要时声明正整数，父调用的较短期限仍有效。输入对象设置 `additionalProperties: false`，业务限制由插件定义；大文件与 HTTP 内容使用 SDK 字节流，不能将其聚合进单个协议帧。接口变化要同步 UI API、后端实现和测试。
 - 长任务使用协议 request ID、进度事件和 `__cancel`；不要阻塞整个分派器的状态，也不要把无限制任务超时写进接口。
 - UI 通过 `followHostTheme`、`onSurfaceLifecycle` 等 Bridge 方法接入宿主状态。页面按 Activity/View 拆分；业务功能增长时再按 feature 拆组件，避免所有状态和调用都堆在 `main.tsx`。
 - manifest 中的 UI 命令由 Core CLI 按插件/贡献点路由；通过 UI Bridge 的 `onCommand` 处理，并把只读和有副作用的命令分别标注 `read_only` / `mutating`。这不等同于 Agent/MCP 接口。

@@ -124,6 +124,8 @@ const readme = [
   '- `src/` 通过 `wonderland-plugin-sdk` 接入 Core；标准输出只写协议帧。',
   '- `ui/` 通过 UI Bridge SDK 调用后端和 Core 服务，不直接调用 Tauri 命令。',
   '- 普通宿主服务默认可用，文件交互由 Core 统一适配本地与远程环境；插件后端以当前用户身份运行，安装者应审阅代码来源。',
+  '- HTTP 使用 `HostClient::http_request`／`http_request_bytes`，文件使用 `export_bytes`／`read_file`／`write_file`；大内容按字节流传输，Core 不自动业务重试。',
+  '- contract 的 `timeoutMs` 省略或 null 不设置总期限；仅在需要时声明明确正整数预算。父调用取消或更早期限仍生效。',
   '- 目录规范、用户数据、插件服务与可选 Agent/MCP 适配器见 `PLUGIN_STRUCTURE.md`。',
   '',
   '## 发布',

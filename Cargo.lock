@@ -3,6 +3,12 @@
 version = 4
 
 [[package]]
+name = "base64"
+version = "0.22.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "72b3254f16251a8381aa12e40e3c4d2f0199f8c6508fbecb9d91f575e0fbb8c6"
+
+[[package]]
 name = "block-buffer"
 version = "0.10.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -177,7 +183,7 @@ checksum = "0b928f33d975fc6ad9f86c8f283853ad26bdd5b10b7f1542aa2fa15e2289105a"
 
 [[package]]
 name = "wonderland-plugin-protocol"
-version = "0.1.9"
+version = "0.2.0"
 dependencies = [
  "serde",
  "serde_json",
@@ -185,8 +191,9 @@ dependencies = [
 
 [[package]]
 name = "wonderland-plugin-sdk"
-version = "0.1.9"
+version = "0.2.0"
 dependencies = [
+ "base64",
  "serde",
  "serde_json",
  "sha2",
@@ -195,7 +202,7 @@ dependencies = [
 
 [[package]]
 name = "wonderland-template-plugin"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "serde_json",
  "wonderland-plugin-sdk",

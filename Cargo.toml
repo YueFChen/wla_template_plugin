@@ -2,7 +2,7 @@
 name = "wonderland-template-plugin"
 description = "Starter plugin for the Wonderland dynamic plugin host."
 authors = ["Yuef Chen"]
-version = "0.1.1"
+version = "0.1.2"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
@@ -10,7 +10,7 @@ publish.workspace = true
 
 [dependencies]
 serde_json.workspace = true
-wonderland-plugin-sdk = { version = "0.1.8", path = "../../crates/plugin-sdk" }
+wonderland-plugin-sdk = { version = "0.2.0", path = "../../crates/plugin-sdk" }
 
 [workspace]
 resolver = "3"
@@ -19,7 +19,7 @@ members = [
 ]
 
 [workspace.package]
-version = "0.1.1"
+version = "0.1.2"
 edition = "2024"
 rust-version = "1.98"
 license = "Apache-2.0"

@@ -2,12 +2,12 @@
   "manifestVersion": 3,
   "id": "template_plugin",
   "name": "Wonderland Plugin Template",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Starter plugin template for the Wonderland dynamic plugin host.",
   "icon": "puzzle",
   "hostCompatibility": {
-    "minCoreVersion": "0.1.8",
-    "maxCoreVersionExclusive": "1.0.0",
+    "minCoreVersion": "0.2.0",
+    "maxCoreVersionExclusive": "0.3.0",
     "protocol": {
       "minVersion": "1.0.0",
       "maxVersionExclusive": "2.0.0"

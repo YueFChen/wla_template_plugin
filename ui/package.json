@@ -1,7 +1,7 @@
 {
   "name": "@wonderland/template-plugin",
   "author": "Yuef Chen",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "private": true,
   "type": "module",
   "scripts": {
