@@ -28,7 +28,7 @@ pnpm --dir .\plugins\my_plugin run validate
 pnpm --dir .\plugins\my_plugin run debug
 ```
 
-`debug` 会构建 UI 和后端，再启动 Core 开发版。Core 只在 debug 构建读取开发包路径；安装时仍校验 manifest、contract、兼容性和包文件，并自动启用和启动开发插件。请先关闭现有 Core 开发版。修改代码后重新运行调试命令；当前不支持插件热重载。
+`debug` 会构建 UI 和后端，再启动 Core 开发版。Core 只在 debug 构建读取开发包路径；安装时仍校验 manifest、contract、兼容性和包文件，并自动启用开发插件，实际打开或调用时才启动后端。请先关闭现有 Core 开发版。修改后端代码后重新运行调试命令；UI 调试入口沿用现有开发工具。
 
 本模板使用配套 Core 0.2.0 SDK，清单支持范围为 `>=0.2.0, <0.3.0`。`pnpm debug` 使用隔离 iframe 插件 UI；`debug:ui` 保留为旧命令别名。
 
@@ -60,6 +60,23 @@ let file = host.export_bytes("report.bin", &bytes)?;
 大响应可使用 `http_request` 后逐次 `stream_read`，不必聚合整段字节；提前停止时使用 `stream_close`。上传、导出和显式宿主文件读写复用字节流，不能把总文件内容塞进一个 NDJSON 帧。`export_bytes` 按块传输并返回本地文件或远程待下载回执；`read_file`／`write_file` 的显式路径指运行 Core 的宿主，访问设备文件选择仍由 Core 适配。
 
 contract 方法的 `timeoutMs` 省略或 `null` 表示不设总期限；正整数代表明确期限，父调用较短的期限仍有效。模板 `get_info` 不默认添加等待上限。需要请求期限时设置 `HttpRequestParams.timeout_ms` 或使用 `call_core_with_timeout`；取消及关闭流仍应处理。
+
+## 按需启动与后台工作
+
+模板使用 `backend.activation: "on_demand"`。启用只表示允许使用；打开页面或调用方法才启动后端，关闭页面不会立即停止进程。不要在初始化时同步调用其他插件的业务方法；`serve_with_startup` 的回调用于绑定宿主和登记恢复需求，宿主响应的接收循环已就绪。
+
+普通 RPC 的工作由 Core 自动跟踪。工作需要在 RPC 返回后继续执行时，先登记活动，再将 guard 移到任务中；登记失败就不要启动该工作：
+
+```rust
+let activity = host.begin_activity("生成报告")?;
+std::thread::spawn(move || {
+    // 完成业务写入及资源清理后再释放活动。
+    // 执行耗时工作……
+    drop(activity);
+});
+```
+
+需要下次桌面启动恢复持久业务时，改用 `background_restore`。首次运行读取自己的业务配置后调用 `host.set_background_restore(required)?`；开启恢复业务须先上报 `true` 并等待成功，再保存业务配置；关闭则先保存配置和清理任务，再上报 `false`。Core 只保存布尔需求，不读取插件的业务文件。无后台恢复需要的插件无需上报或改动业务存储。
 
 ## 构建与发布
 

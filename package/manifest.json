@@ -49,7 +49,8 @@
   "backend": {
     "entry": "backend/wonderland-template-plugin.exe",
     "transport": "stdio-ndjson-v1",
-    "supportsServiceContext": true
+    "supportsServiceContext": true,
+    "activation": "on_demand"
   },
   "contract": "contract.json",
   "author": "YueFChen"
