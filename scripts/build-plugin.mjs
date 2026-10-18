@@ -1,3 +1,4 @@
+import { finishPackage } from '../../../packages/plugin-tools/pack.mjs'
 import './check-core-compatibility.mjs'
 import { createHash } from 'node:crypto'
 import { cp, mkdir, readdir, readFile, rename, rm, writeFile } from 'node:fs/promises'
@@ -70,34 +71,9 @@ const backendDestination = path.join(output, ...backendEntry.split('/'))
 await mkdir(path.dirname(backendDestination), { recursive: true })
 await cp(backendSource, backendDestination)
 
-const files = await listFiles(output)
-const checksums = {
-  algorithm: 'sha256',
-  files: await Promise.all(files.map(async (file) => ({
-    path: file,
-    sha256: createHash('sha256').update(await readFile(path.join(output, ...file.split('/')))).digest('hex'),
-  }))),
-}
-await writeFile(path.join(output, 'checksums.json'), `${JSON.stringify(checksums, null, 2)}\n`)
-
+const packageResult = await finishPackage({root,stage:output,archivePath:archive ? path.join(targetRoot,`${manifest.id}-${manifest.version}-windows-${manifest.platform.architecture}.wplug`) : undefined})
 if (archive) {
-  if (!release) throw new Error('A .wplug archive can only be created from a release build.')
-  const archivePath = path.join(
-    targetRoot,
-    `${manifest.id}-${manifest.version}-windows-x86_64.wplug`,
-  )
-  const zipPath = `${archivePath}.zip`
-  await rm(archivePath, { force: true })
-  await rm(zipPath, { force: true })
-  const source = quotePowerShell(path.join(output, '*'))
-  const destination = quotePowerShell(zipPath)
-  run('powershell.exe', [
-    '-NoProfile',
-    '-NonInteractive',
-    '-Command',
-    `Compress-Archive -Path ${source} -DestinationPath ${destination} -CompressionLevel Optimal`,
-  ])
-  await rename(zipPath, archivePath)
+  const archivePath=packageResult.archivePath
   console.log(`Release package created: ${archivePath}`)
 } else {
   console.log(`Plugin package created: ${output}`)

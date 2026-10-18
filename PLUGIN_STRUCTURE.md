@@ -68,11 +68,10 @@ my_plugin/
 
 | Core 服务 | 适用场景 |
 | --- | --- |
-| `core.account.snapshot`、`core.account.authed_get` | 读取现有账号摘要及请求既有受支持的账号接口，接口范围保持不变 |
-| `core.network.public` | 经 Core 发起公共 HTTP 请求 |
-| `core.network.model` | 经 Core 调用模型服务；`secretId` 可省略以使用无认证端点 |
+| `core.network.request` | 统一 HTTP(S) 传输，认证可选；模型协议和业务重试由插件处理 |
 | `core.secrets.plugin.*` | 读写插件自己的密钥分区 |
 | `core.files.pick`、`core.files.read` | 统一文件选择与读取 |
+| `core.files.open_read`、`core.files.open_write`、`core.streams.*` | 显式宿主路径与分块读写；不设置固定文件总量或总期限 |
 | `core.files.export` | 返回 `FileResult`：本地 `local/saved` 含真实路径；远程 `remote/ready` 含下载 ID，表示生成完成并等待下载 |
 | `core.files.export_dir` | 本地返回真实导出目录；远程返回 `DIRECTORY_UNAVAILABLE`，UI 应按可选信息处理 |
 | `core.files.reveal_own` | 打开插件自己的数据或导出位置，保留用户“打开导出位置”操作 |

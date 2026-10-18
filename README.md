@@ -75,7 +75,9 @@ pnpm run package:plugin
 - `pnpm run package:plugin` 生成优化后的 `.wplug` 与 SHA-256 校验清单。
 - `pnpm run validate` 检查 manifest、contract、Cargo/npm 元数据、UI Bridge 身份和标准目录的一致性。
 
-插件版本遵循 SemVer。SHA-256 清单用于发现包内容不一致，不代表发布者身份，也不是代码安全证明；模板不使用发布签名。作者信息记录在 Cargo/npm 元数据和 `NOTICE.md` 中，不写入当前不接受 `author` 字段的 manifest。
+本地开发保留当前版本号；在线发行才准备未占用的新版本。SHA-256 清单用于检查包完整性。作者资料保存在 manifest v3 并与 Cargo/npm、`NOTICE.md` 保持一致；正式发布使用 `pnpm run package:release`，由作者工具使用原身份完成包内签名，缺钥失败。本地开发包可以未签名。分发管理端只验签和发布，线上同版本内容不可覆盖。
+
+UI 示例使用共享 `@wonderland/ui/plugin.css`，自动跟随 Core 主题；控件、面板和弹窗沿用 Core 规范，不重复绘制宿主页头或品牌标记。Vite 对 React 与 ReactDOM 去重，避免链接共享 UI 包时加载两份运行时。
 
 模板内容采用 Apache-2.0 许可。生成插件后请按需要更新插件许可证，并保留模板材料的署名通知。
 

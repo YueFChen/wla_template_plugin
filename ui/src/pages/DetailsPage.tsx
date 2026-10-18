@@ -9,13 +9,13 @@ interface DetailsPageProps {
 export function DetailsPage({ info, lifecycle }: DetailsPageProps) {
   return (
     <main className="panel">
-      <p className="eyebrow">{t('view.badge')}</p>
-      <h1>{t('view.title')}</h1>
-      <p>{t('view.description')}</p>
+      <section className="example-panel plugin-panel">
+      <h2>{t('view.summary')}</h2>
       <dl>
         <dt>{t('view.pluginId')}</dt><dd>{info?.id ?? t('status.loading')}</dd>
-        <dt>{t('view.surface')}</dt><dd>{lifecycle}</dd>
+        <dt>{t('view.surface')}</dt><dd>{t(lifecycle === 'active' ? 'status.active' : 'status.inactive')}</dd>
       </dl>
+      </section>
     </main>
   )
 }

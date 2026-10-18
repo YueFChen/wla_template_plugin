@@ -11,15 +11,18 @@ interface MainPageProps {
 export function MainPage({ info, lifecycle, error, onOpenDetails }: MainPageProps) {
   return (
     <main className="panel" data-surface-state={lifecycle}>
-      <p className="eyebrow">{t('app.badge')}</p>
-      <h1>{info?.name ?? t('app.title')}</h1>
-      <p>{t('app.description')}</p>
-      {info && <p className="meta">{info.id} · v{info.version} · {lifecycle}</p>}
+      <section className="example-panel plugin-panel">
+      <h2>{t('app.connection')}</h2>
+      <dl>
+        <dt>{t('view.pluginId')}</dt><dd>{info?.id ?? t('status.loading')}</dd>
+        <dt>{t('app.version')}</dt><dd>{info?.version ?? '—'}</dd>
+        <dt>{t('view.surface')}</dt><dd>{t(lifecycle === 'active' ? 'status.active' : 'status.inactive')}</dd>
+      </dl>
       {error && <p role="alert" className="error">{t('app.backendError', { error })}</p>}
-      <button type="button" onClick={onOpenDetails}>
+      <button type="button" className="app-button" data-variant="primary" onClick={onOpenDetails}>
         {t('app.openView')}
       </button>
-      <p className="note">{t('app.note')}</p>
+      </section>
     </main>
   )
 }

@@ -57,6 +57,7 @@ contract.methods.get_info.result.properties.id.const = id
 contract.methods.get_info.result.properties.version.const = version
 
 const changes = new Map()
+manifest.author = author
 changes.set('package/manifest.json', `${JSON.stringify(manifest, null, 2)}\n`)
 changes.set('package/contract.json', `${JSON.stringify(contract, null, 2)}\n`)
 let nextCargo = replaceLine(cargoText, /^name\s*=\s*"[a-z0-9_-]+"$/m, `name = ${tomlString(crateName)}`)
@@ -130,7 +131,7 @@ const readme = [
   '',
   '## 发布',
   '',
-  '`pnpm run package:plugin` 生成 Windows x86_64 的 `.wplug` 和 SHA-256 校验清单。校验清单用于检查包完整性，不代表发布者身份。作者信息记录于 Cargo/npm 元数据和 `NOTICE.md`。',
+  '`pnpm run package:plugin` 生成本地 `.wplug` 候选；正式成品使用 `pnpm run package:release`，由作者工具以原身份完成包内签名，缺钥失败。作者资料保存在 manifest v3，并与 Cargo/npm 和 `NOTICE.md` 保持一致。分发管理端只验签和发布。本地开发保留当前版本号，在线同版本内容不可覆盖。',
   '',
 ].join('\n')
 changes.set('README.md', readme)

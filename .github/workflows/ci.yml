@@ -23,11 +23,16 @@ jobs:
     name: Build with Core SDK and UI
     runs-on: windows-latest
     steps:
+      - name: Require the verified Core SDK commit
+        shell: pwsh
+        env:
+          CORE_COMMIT: ${{ vars.WONDERLAND_CORE_COMMIT }}
+        run: if ($env:CORE_COMMIT -cnotmatch '^[a-f0-9]{40}$') { throw 'Configure WONDERLAND_CORE_COMMIT to the verified package-signing Core commit.' }
       - name: Checkout Core
         uses: actions/checkout@v4
         with:
           repository: ${{ vars.WONDERLAND_CORE_REPOSITORY || 'YueFChen/Wonderland_Assistant' }}
-          ref: 9e401ad2d24b16568d786fc4b2e32311fee60b37
+          ref: ${{ vars.WONDERLAND_CORE_COMMIT }}
           path: Wonderland_Assistant
           token: ${{ secrets.WONDERLAND_CORE_CHECKOUT_TOKEN || github.token }}
       - name: Checkout plugin template into Core development layout

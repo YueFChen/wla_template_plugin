@@ -1,7 +1,7 @@
 [package]
 name = "wonderland-template-plugin"
 description = "Starter plugin for the Wonderland dynamic plugin host."
-authors = ["Yuef Chen"]
+authors = ["YueFChen"]
 version = "0.1.2"
 edition.workspace = true
 rust-version.workspace = true
