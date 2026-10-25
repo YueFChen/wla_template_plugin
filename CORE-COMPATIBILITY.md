@@ -2,7 +2,7 @@
 
 > 当前开发契约：本轮保留 manifest v3、NDJSON 1.0 和现有 UI Bridge 版本，配套 Core 提供统一 HTTP、分块字节流及可选期限。候选包仅用于本地验收；正式发行前仍需固定已验证 SDK 提交并通过签名、联调与渠道切换门槛。
 
-本模板开发版本为 **0.1.2**，要求配套 Core **>=0.2.0, <0.3.0**。构建前运行 `node scripts/check-core-compatibility.mjs`；构建脚本会自动检查此条件。本轮保留 pluginId 与业务数据目录，旧 Core 不保证提供新的宿主接口。
+插件 `wla_template_plugin` 开发版本为 **0.1.2**，要求配套 Core **>=0.2.0, <0.3.0**。构建前运行 `node scripts/check-core-compatibility.mjs`；构建脚本会自动检查此条件。插件 ID 决定数据、密钥和设备偏好的命名空间，旧 Core 不保证提供新的宿主接口。
 
 远程访问：**未声明，仅限本地**。
 

@@ -13,10 +13,13 @@ const description = options.description?.trim() || `${name} plugin for Wonderlan
 if (!/^[a-z][a-z0-9_-]{0,63}$/.test(id)) {
   throw new Error('--id must be a unique lowercase ID containing only letters, numbers, hyphens, or underscores.')
 }
+if (/^(con|prn|aux|nul|com[1-9]|lpt[1-9])$/i.test(id)) {
+  throw new Error('--id cannot be a reserved Windows device name.')
+}
 if (!name || name.length > 120) throw new Error('--name is required and must be at most 120 characters.')
 if (!author || author.length > 120) throw new Error('--author is required and must be at most 120 characters.')
-if (!/^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?$/.test(version)) {
-  throw new Error('--version must be a semantic version such as 0.1.0.')
+if (!/^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(?:-(?:0|[1-9][0-9]*|[0-9]*[A-Za-z-][0-9A-Za-z-]*)(?:\.(?:0|[1-9][0-9]*|[0-9]*[A-Za-z-][0-9A-Za-z-]*))*)?$/.test(version)) {
+  throw new Error('--version must be a semantic version without build metadata, such as 0.1.0 or 0.1.0-beta.1.')
 }
 if (description.length > 500) throw new Error('--description must be at most 500 characters.')
 if ([name, author, description].some((value) => /[\u0000-\u001f\u007f]/.test(value))) {
@@ -34,6 +37,7 @@ const manifest = JSON.parse(manifestText)
 const contract = JSON.parse(contractText)
 const packageMetadata = JSON.parse(packageText)
 const oldId = manifest.id
+const oldVersion = manifest.version
 const oldCargoName = cargoText.match(/^name\s*=\s*"([a-z0-9_-]+)"/m)?.[1]
 const idProperty = contract.methods?.get_info?.result?.properties?.id
 if (!oldCargoName || !idProperty || idProperty.const !== oldId) {
@@ -93,11 +97,17 @@ let html = await readFile(path.join(root, 'ui/index.html'), 'utf8')
 html = replaceFirst(html, /<title>[^<]*<\/title>/, `<title>${escapeHtml(name)}</title>`, 'HTML title')
 changes.set('ui/index.html', html)
 
-let translation = await readFile(path.join(root, 'ui/src/i18n/zh-CN.ts'), 'utf8')
-translation = replaceTranslation(translation, 'view.title', `${name} 详情`)
-translation = replaceTranslation(translation, 'app.badge', `${name.toUpperCase()} PLUGIN`)
-translation = replaceTranslation(translation, 'app.title', name)
-changes.set('ui/src/i18n/zh-CN.ts', translation)
+for (const relative of ['.github/workflows/ci.yml', '.github/workflows/package.yml']) {
+  const workflow = await readFile(path.join(root, relative), 'utf8')
+  const directory = workflow.match(/(?:path|working-directory): (?:Wonderland_Assistant|core)\/plugins\/([a-z][a-z0-9_-]*)/)?.[1]
+  if (!directory) throw new Error(`Plugin checkout path was not found in ${relative}.`)
+  changes.set(relative, workflow
+    .replaceAll(`plugins/${directory}`, `plugins/${id}`)
+    .replaceAll(`signed-${oldId}-`, `signed-${id}-`))
+}
+
+const compatibility = await readFile(path.join(root, 'CORE-COMPATIBILITY.md'), 'utf8')
+changes.set('CORE-COMPATIBILITY.md', compatibility.replaceAll(oldId, id).replaceAll(`**${oldVersion}**`, `**${version}**`))
 
 const readme = [
   `# ${name}`,
@@ -109,7 +119,8 @@ const readme = [
   '此仓库是独立 Wonderland 插件。Core checkout 提供宿主和本地 SDK/UI 包，插件源码、业务和 Git 历史由本仓库管理。',
   '',
   '```powershell',
-  'pnpm install',
+  'pnpm install --frozen-lockfile',
+  'pnpm run check',
   'pnpm run validate',
   'pnpm run debug',
   '```',
@@ -131,7 +142,7 @@ const readme = [
   '',
   '## 发布',
   '',
-  '`pnpm run package:plugin` 生成本地 `.wplug` 候选；正式成品使用 `pnpm run package:release`，由作者工具以原身份完成包内签名，缺钥失败。作者资料保存在 manifest v3，并与 Cargo/npm 和 `NOTICE.md` 保持一致。分发管理端只验签和发布。本地开发保留当前版本号，在线同版本内容不可覆盖。',
+  '`pnpm run package:plugin` 生成本地 `.wplug` 候选；运行 `pnpm run test:protocol` 验证开发目录包，或 `node scripts/test-protocol.mjs target/release-package` 验证 release 目录包。正式成品使用 `pnpm run package:release`，由作者工具以原身份完成包内签名，缺钥失败。作者资料保存在 manifest v3，并与 Cargo/npm 和 `NOTICE.md` 保持一致。分发管理端只验签和发布。本地开发保留当前版本号，在线同版本内容不可覆盖。',
   '',
 ].join('\n')
 changes.set('README.md', readme)
@@ -156,6 +167,7 @@ function parseArgs(args) {
     }
     const value = args[index + 1]
     if (!value || value.startsWith('--')) throw new Error(`${key} requires a value.`)
+    if (Object.hasOwn(parsed, key.slice(2))) throw new Error(`${key} may be specified once.`)
     parsed[key.slice(2)] = value
     index += 1
   }
@@ -189,16 +201,6 @@ function replaceRustConstant(text, constant, value) {
   const pattern = new RegExp(`(const ${constant}: &str = )"[^"\\n]*";`)
   if (!pattern.test(text)) throw new Error(`Expected Rust ${constant} was not found.`)
   return text.replace(pattern, (_match, prefix) => `${prefix}${rustString(value)};`)
-}
-
-function replaceTranslation(text, key, value) {
-  const lines = text.split(/\r?\n/)
-  const index = lines.findIndex((line) => line.trimStart().startsWith(`'${key}':`))
-  if (index < 0) throw new Error(`Translation key was not found: ${key}`)
-  const prefix = lines[index].match(/^(\s*'[^']+'\s*:\s*)/)?.[1]
-  if (!prefix) throw new Error(`Translation entry is malformed: ${key}`)
-  lines[index] = `${prefix}${jsString(value)},`
-  return lines.join('\n')
 }
 
 function tomlString(value) {

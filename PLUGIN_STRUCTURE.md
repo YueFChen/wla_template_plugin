@@ -41,7 +41,7 @@ my_plugin/
 └─ rust-toolchain.toml
 ```
 
-当前模板实际包含 `src/main.rs`、`src/commands.rs`、`ui/src/App.tsx`、`ui/src/api/plugin.ts` 和两个示例页面；业务增长后再引入 `domain/`、`storage/`、`features/` 等模块。小插件不需要照搬全部目录。
+当前模板实际包含 `src/main.rs`、`src/commands.rs`、`ui/src/App.tsx`、`ui/src/api/plugin.ts` 和两个示例页面；业务增长后再引入 `domain/`、`storage/`、`features/` 等模块。小插件不需要照搬全部目录。`tests/init-plugin.test.mjs` 验证模板生成行为，`scripts/test-protocol.mjs` 验证目录包中的真实后端。
 
 ## 文件职责和数据流
 
@@ -95,5 +95,5 @@ my_plugin/
 
 - 插件是独立 Git 仓库和独立版本；`plugins/<id>` 是 Core 开发布局，不表示插件并入 Core 的 Cargo/pnpm workspace，也不应在 Core 仓库里提交插件仓库文件。
 - 当前 SDK 与 UI 依赖通过相对路径链接到 Core checkout，因此模板能在 Core 的 `plugins/` 下开发和 CI 构建。**当前模板不能脱离匹配版本的 Core checkout 独立编译**；将 SDK/UI 发布到版本化注册源后，才适合完全独立 clone/build。
-- 改动接口时至少运行 `pnpm run validate`、`cargo fmt --all -- --check`、`cargo clippy --all-targets --locked -- -D warnings`、`cargo test --locked`、`pnpm typecheck` 和 `pnpm build`。Core 集成 CI 另外验证创建新插件、开发运行和 release package。
+- 改动接口时运行 `pnpm run check`、`pnpm build` 和 `pnpm run test:protocol`；构建 release 包后用 `node scripts/test-protocol.mjs target/release-package` 验证其实际后端。Core 集成 CI 另外验证从当前模板创建新插件和构建安装包。
 - 当前模板发布目标是 Windows x86_64 MSVC。新增平台要同步处理 Cargo target、manifest 平台、打包后端文件名、CI runner 和安装检查。

@@ -201,7 +201,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "wonderland-template-plugin"
+name = "wonderland-wla-template-plugin"
 version = "0.1.2"
 dependencies = [
  "serde_json",

@@ -1,7 +1,7 @@
 import { finishPackage } from '../../../packages/plugin-tools/pack.mjs'
+import './validate-template.mjs'
 import './check-core-compatibility.mjs'
-import { createHash } from 'node:crypto'
-import { cp, mkdir, readdir, readFile, rename, rm, writeFile } from 'node:fs/promises'
+import { cp, mkdir, readFile, rm } from 'node:fs/promises'
 import { spawnSync } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
 import path from 'node:path'
@@ -77,20 +77,4 @@ if (archive) {
   console.log(`Release package created: ${archivePath}`)
 } else {
   console.log(`Plugin package created: ${output}`)
-}
-
-async function listFiles(directory, prefix = '') {
-  const entries = await readdir(directory, { withFileTypes: true })
-  const files = []
-  for (const entry of entries) {
-    const relative = prefix ? `${prefix}/${entry.name}` : entry.name
-    if (entry.isDirectory()) files.push(...await listFiles(path.join(directory, entry.name), relative))
-    else if (entry.isFile()) files.push(relative)
-    else throw new Error(`Unsupported package entry: ${relative}`)
-  }
-  return files.sort()
-}
-
-function quotePowerShell(value) {
-  return `'${value.replaceAll("'", "''")}'`
 }

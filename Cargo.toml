@@ -1,5 +1,5 @@
 [package]
-name = "wonderland-template-plugin"
+name = "wonderland-wla-template-plugin"
 description = "Starter plugin for the Wonderland dynamic plugin host."
 authors = ["YueFChen"]
 version = "0.1.2"

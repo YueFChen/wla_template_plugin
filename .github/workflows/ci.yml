@@ -8,6 +8,9 @@ on:
 permissions:
   contents: read
 
+env:
+  CORE_COMMIT: ${{ vars.WONDERLAND_CORE_COMMIT || '770461ddc1d54da9ae620892ce8b903adebfe2e7' }}
+
 jobs:
   metadata:
     name: Validate template metadata
@@ -18,6 +21,7 @@ jobs:
         with:
           node-version: 24
       - run: node scripts/validate-template.mjs
+      - run: node --test tests/*.test.mjs
 
   core-integration:
     name: Build with Core SDK and UI
@@ -25,14 +29,12 @@ jobs:
     steps:
       - name: Require the verified Core SDK commit
         shell: pwsh
-        env:
-          CORE_COMMIT: ${{ vars.WONDERLAND_CORE_COMMIT }}
         run: if ($env:CORE_COMMIT -cnotmatch '^[a-f0-9]{40}$') { throw 'Configure WONDERLAND_CORE_COMMIT to the verified package-signing Core commit.' }
       - name: Checkout Core
         uses: actions/checkout@v4
         with:
           repository: ${{ vars.WONDERLAND_CORE_REPOSITORY || 'YueFChen/Wonderland_Assistant' }}
-          ref: ${{ vars.WONDERLAND_CORE_COMMIT }}
+          ref: ${{ env.CORE_COMMIT }}
           path: Wonderland_Assistant
           token: ${{ secrets.WONDERLAND_CORE_CHECKOUT_TOKEN || github.token }}
       - name: Checkout plugin template into Core development layout
@@ -49,27 +51,22 @@ jobs:
         run: pnpm install --frozen-lockfile
         working-directory: Wonderland_Assistant
       - name: Create a fresh plugin repository from the template
-        run: pnpm run create:plugin -- --id ci_plugin --name "CI Plugin" --author "CI"
+        run: pnpm run create:plugin -- --template plugins/template_plugin --id ci_plugin_${{ github.run_id }} --name "CI Plugin" --author "CI"
         working-directory: Wonderland_Assistant
       - name: Build the generated plugin
-        run: pnpm --dir plugins/ci_plugin run build
+        run: pnpm --dir plugins/ci_plugin_${{ github.run_id }} run build
+        working-directory: Wonderland_Assistant
+      - name: Verify the generated plugin's packaged backend
+        run: pnpm --dir plugins/ci_plugin_${{ github.run_id }} run test:protocol
         working-directory: Wonderland_Assistant
       - name: Show pinned Rust toolchain
         working-directory: Wonderland_Assistant/plugins/template_plugin
         run: rustup show
-      - run: cargo fmt --all -- --check
-        working-directory: Wonderland_Assistant/plugins/template_plugin
-      - run: cargo clippy --all-targets --locked -- -D warnings
-        working-directory: Wonderland_Assistant/plugins/template_plugin
-      - run: cargo test --locked
-        working-directory: Wonderland_Assistant/plugins/template_plugin
       - run: pnpm install --frozen-lockfile
         working-directory: Wonderland_Assistant/plugins/template_plugin
-      - run: pnpm validate
-        working-directory: Wonderland_Assistant/plugins/template_plugin
-      - run: pnpm typecheck
-        working-directory: Wonderland_Assistant/plugins/template_plugin
-      - run: pnpm build
+      - run: pnpm run check
         working-directory: Wonderland_Assistant/plugins/template_plugin
       - run: pnpm run package:plugin
+        working-directory: Wonderland_Assistant/plugins/template_plugin
+      - run: node scripts/test-protocol.mjs target/release-package
         working-directory: Wonderland_Assistant/plugins/template_plugin

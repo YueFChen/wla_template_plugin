@@ -16,7 +16,7 @@
         "properties": {
           "id": {
             "type": "string",
-            "const": "template_plugin"
+            "const": "wla_template_plugin"
           },
           "name": {
             "type": "string",

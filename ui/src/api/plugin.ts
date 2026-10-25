@@ -6,7 +6,7 @@ export interface PluginInfo {
   version: string
 }
 
-export const host = createPluginHostClient('template_plugin')
+export const host = createPluginHostClient('wla_template_plugin')
 
 export const pluginApi = {
   getInfo: () => host.call<PluginInfo>('get_info'),

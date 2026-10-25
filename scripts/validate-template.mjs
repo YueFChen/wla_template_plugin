@@ -4,16 +4,16 @@ import path from 'node:path'
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const readJson = async (relative) => JSON.parse(await readFile(path.join(root, relative), 'utf8'))
-const [manifest, contract, packageMetadata, uiMetadata, cargoToml, backendSource, uiSource, uiApiSource, uiStyles] = await Promise.all([
+const [manifest, contract, packageMetadata, uiMetadata, cargoToml, backendSource, uiApiSource, uiStyles, notice] = await Promise.all([
   readJson('package/manifest.json'),
   readJson('package/contract.json'),
   readJson('package.json'),
   readJson('ui/package.json'),
   readFile(path.join(root, 'Cargo.toml'), 'utf8'),
   readFile(path.join(root, 'src/main.rs'), 'utf8'),
-  readFile(path.join(root, 'ui/src/App.tsx'), 'utf8'),
   readFile(path.join(root, 'ui/src/api/plugin.ts'), 'utf8'),
   readFile(path.join(root, 'ui/src/style.css'), 'utf8'),
+  readFile(path.join(root, 'NOTICE.md'), 'utf8'),
 ])
 
 const fail = (message) => {
@@ -29,6 +29,8 @@ if (manifest.backend?.supportsServiceContext !== true) fail('updated SDK context
 if (manifest.remoteAccess !== undefined && typeof manifest.remoteAccess !== 'boolean') fail('remoteAccess must be a boolean when declared.')
 if (manifest.hostCompatibility?.minCoreVersion !== '0.2.0' || manifest.hostCompatibility?.maxCoreVersionExclusive !== '0.3.0') fail('template requires the Core 0.2.0 SDK baseline below 0.3.0.')
 if (!/^[a-z][a-z0-9_-]{0,63}$/.test(manifest.id)) fail('manifest ID does not match the plugin ID schema.')
+if (/^(con|prn|aux|nul|com[1-9]|lpt[1-9])$/i.test(manifest.id)) fail('manifest ID is a reserved Windows device name.')
+if (!['on_demand', 'background_restore', 'on_startup'].includes(manifest.backend?.activation)) fail('backend activation must declare a supported lifecycle policy.')
 if (!manifest.name || manifest.name.length > 120) fail('manifest name is missing or too long.')
 if (!cargoName || !cargoVersion) fail('Cargo package name or version is missing.')
 if (cargoVersion !== manifest.version) fail('Cargo and manifest versions differ.')
@@ -43,13 +45,16 @@ if (!backendSource.includes(`const PLUGIN_NAME: &str = ${JSON.stringify(manifest
 if (!uiApiSource.includes(`createPluginHostClient('${manifest.id}')`)) fail('UI Bridge client ID differs from manifest ID.')
 if (!/@import ['"]@wonderland\/ui\/(?:plugin-theme|plugin)\.css['"]/.test(uiStyles)) fail('UI must import the shared Core plugin stylesheet.')
 if (typeof manifest.author !== 'string' || !manifest.author.trim()) fail('manifest author is required for formal packaging.')
-if (!packageMetadata.author || !uiMetadata.author || !cargoToml.match(/^authors\s*=\s*\[[^\]]+\]$/m)) fail('author metadata must be present in Cargo and npm packages.')
+let cargoAuthors
+try { cargoAuthors = JSON.parse(cargoToml.match(/^authors\s*=\s*(\[[^\n]+\])$/m)?.[1] ?? 'null') } catch { fail('Cargo authors must be a string array.') }
+if (packageMetadata.author !== manifest.author || uiMetadata.author !== manifest.author || !Array.isArray(cargoAuthors) || !cargoAuthors.includes(manifest.author) || !notice.split(/\r?\n/).includes(`Plugin author: ${manifest.author}`)) fail('author metadata must match the manifest in Cargo, npm, and NOTICE.md.')
 if (packageMetadata.version !== manifest.version || uiMetadata.version !== manifest.version) fail('Cargo, npm, and manifest versions must match.')
 if (['capabilities', 'networkPublicHosts', 'provides', 'requires'].some((key) => Object.hasOwn(manifest, key))) fail('manifest v3 must not declare removed host capability or service fields.')
 if (manifest.dependencies?.length) fail('the starter template declares no plugin dependencies by default.')
 
 for (const relative of [
   'README.md',
+  'CORE-COMPATIBILITY.md',
   'PLUGIN_STRUCTURE.md',
   'LICENSE',
   'NOTICE.md',
@@ -68,7 +73,9 @@ for (const relative of [
   'scripts/debug-plugin.mjs',
   'scripts/build-plugin.mjs',
   'scripts/check-core-compatibility.mjs',
+  'scripts/test-protocol.mjs',
   '.github/workflows/ci.yml',
+  '.github/workflows/package.yml',
 ]) {
   try {
     await access(path.join(root, relative))

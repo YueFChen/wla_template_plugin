@@ -2,7 +2,7 @@ use wonderland_plugin_sdk::serve;
 
 mod commands;
 
-const PLUGIN_ID: &str = "template_plugin";
+const PLUGIN_ID: &str = "wla_template_plugin";
 const PLUGIN_NAME: &str = "Wonderland Plugin Template";
 const PLUGIN_VERSION: &str = env!("CARGO_PKG_VERSION");
 

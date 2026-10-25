@@ -48,9 +48,7 @@ jobs:
         working-directory: core
       - run: pnpm install --frozen-lockfile
         working-directory: core/plugins/template_plugin
-      - run: pnpm run typecheck
-        working-directory: core/plugins/template_plugin
-      - run: cargo test --locked
+      - run: pnpm run check
         working-directory: core/plugins/template_plugin
       - name: Build the complete signed package with the original identity
         run: pnpm run package:release
@@ -58,6 +56,8 @@ jobs:
         env:
           PLUGIN_UPDATE_SIGNING_KEY: ${{ secrets.PLUGIN_UPDATE_SIGNING_KEY }}
           PLUGIN_UPDATE_SIGNING_PUBLIC_KEY: ${{ vars.PLUGIN_UPDATE_SIGNING_PUBLIC_KEY }}
+      - run: node scripts/test-protocol.mjs target/release-package
+        working-directory: core/plugins/template_plugin
       - name: Verify the artifact and record its source commits
         shell: pwsh
         env:
@@ -75,7 +75,7 @@ jobs:
           $receipt | ConvertTo-Json -Depth 50 | Set-Content -Encoding utf8 'core/plugins/template_plugin/target/package-receipt.json'
       - uses: actions/upload-artifact@v4
         with:
-          name: signed-template_plugin-${{ github.run_id }}
+          name: signed-wla_template_plugin-${{ github.run_id }}
           path: |
             core/plugins/template_plugin/target/*.wplug
             core/plugins/template_plugin/target/package-receipt.json

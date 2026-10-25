@@ -1,6 +1,6 @@
 {
   "manifestVersion": 3,
-  "id": "template_plugin",
+  "id": "wla_template_plugin",
   "name": "Wonderland Plugin Template",
   "version": "0.1.2",
   "description": "Starter plugin template for the Wonderland dynamic plugin host.",
@@ -47,7 +47,7 @@
     ]
   },
   "backend": {
-    "entry": "backend/wonderland-template-plugin.exe",
+    "entry": "backend/wonderland-wla-template-plugin.exe",
     "transport": "stdio-ndjson-v1",
     "supportsServiceContext": true,
     "activation": "on_demand"

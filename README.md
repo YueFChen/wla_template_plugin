@@ -2,6 +2,8 @@
 
 这是 Wonderland 动态插件的公开起步模板仓库。模板包含最小可运行的 Rust 后端、React UI、严格接口契约、校验与打包工具。插件源码和 Git 历史独立于 Core；模板不预设业务配置和插件依赖。
 
+当前模板插件 ID 为 `wla_template_plugin`，开发版本保持 `0.1.2`。源码仓库与默认检出目录仍为 `template_plugin`；创建其他插件时，初始化脚本会替换插件身份、Rust/npm 元数据、兼容说明和 CI 路径。此前安装的 `template_plugin` 属于另一插件 ID，已有数据和密钥继续保留，不自动迁入新 ID。
+
 ## 创建插件仓库
 
 将本模板仓库检出到 Core checkout 的 `plugins/template_plugin`。在 Core 根目录运行创建命令，它会复制模板到 `plugins/<plugin-id>`，同步插件元数据、安装依赖、校验结构并初始化一个新的 Git 仓库。源模板不会被修改，Core 也不会把新插件加入自身的 Cargo 或 pnpm workspace。
@@ -84,13 +86,18 @@ std::thread::spawn(move || {
 
 ```powershell
 pnpm typecheck
+pnpm run check
 pnpm build
+pnpm run test:protocol
 pnpm run package:plugin
+node scripts/test-protocol.mjs target/release-package
 ```
 
 - `pnpm build` 生成 `target/dev-package`，供 Core 插件管理中的手动安装使用。
 - `pnpm run package:plugin` 生成优化后的 `.wplug` 与 SHA-256 校验清单。
 - `pnpm run validate` 检查 manifest、contract、Cargo/npm 元数据、UI Bridge 身份和标准目录的一致性。
+- `pnpm run check` 统一运行元数据校验、初始化回归、类型检查、Rust 格式／Clippy／单测。`pnpm test` 使用临时副本验证真实初始化、特殊字符、CI 路径及无效输入保留源文件。
+- `test:protocol` 启动目录包内的实际后端，检查新 ID 握手、contract 摘要、`get_info`、错误契约和 stdin 关闭后的退出；默认使用 `target/dev-package`，也可向脚本传入 release 目录包路径。
 
 本地开发保留当前版本号；在线发行才准备未占用的新版本。SHA-256 清单用于检查包完整性。作者资料保存在 manifest v3 并与 Cargo/npm、`NOTICE.md` 保持一致；正式发布使用 `pnpm run package:release`，由作者工具使用原身份完成包内签名，缺钥失败。本地开发包可以未签名。分发管理端只验签和发布，线上同版本内容不可覆盖。
 
@@ -100,7 +107,7 @@ UI 示例使用共享 `@wonderland/ui/plugin.css`，自动跟随 Core 主题；�
 
 ## CI
 
-CI 会先做独立的元数据检查，再从公开的 `YueFChen/Wonderland_Assistant` 仓库检出 Core，在 Windows 的 `plugins/template_plugin` 布局中构建和检查插件。需要测试其他 Core 仓库时，将仓库变量 `WONDERLAND_CORE_REPOSITORY` 设为其 `owner/name`；私有 Core 仓库还需配置可读取它的 `WONDERLAND_CORE_CHECKOUT_TOKEN` Secret。
+CI 会先做独立的元数据与初始化检查，再从公开的 `YueFChen/Wonderland_Assistant` 仓库检出 Core，在 Windows 的 `plugins/template_plugin` 布局中构建和检查插件，并从当前源码创建一个新插件完成构建和协议验证。默认固定已验证 Core 提交 `770461ddc1d54da9ae620892ce8b903adebfe2e7`；可用仓库变量 `WONDERLAND_CORE_COMMIT` 覆盖为另一个经过验证的完整提交。需要测试其他 Core 仓库时，将 `WONDERLAND_CORE_REPOSITORY` 设为其 `owner/name`；私有 Core 仓库还需配置可读取它的 `WONDERLAND_CORE_CHECKOUT_TOKEN` Secret。生成插件的 CI 会使用自己的检出目录作为模板来源，不回退下载旧的远端模板。
 
 ## Core 0.2.0 与远程访问
 

@@ -1,5 +1,5 @@
 {
-  "name": "wonderland-plugin-template-plugin",
+  "name": "wonderland-plugin-wla-template-plugin",
   "author": "YueFChen",
   "version": "0.1.2",
   "private": true,
@@ -15,6 +15,9 @@
     "package:plugin": "node scripts/build-plugin.mjs --release --archive",
     "typecheck": "pnpm --dir ui run typecheck",
     "validate": "node scripts/validate-template.mjs",
+    "test": "node --test tests/*.test.mjs",
+    "test:protocol": "node scripts/test-protocol.mjs",
+    "check": "pnpm run validate && pnpm run test && pnpm run typecheck && cargo fmt --all --check && cargo clippy --all-targets --locked -- -D warnings && cargo test --locked",
     "package:release": "node scripts/build-plugin.mjs --release --archive --signed"
   }
 }
