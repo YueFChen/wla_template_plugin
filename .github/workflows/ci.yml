@@ -40,7 +40,7 @@ jobs:
       - name: Checkout plugin template into Core development layout
         uses: actions/checkout@v4
         with:
-          path: Wonderland_Assistant/plugins/template_plugin
+          path: Wonderland_Assistant/plugins/wla_template_plugin
       - uses: actions/setup-node@v4
         with:
           node-version: 24
@@ -51,22 +51,22 @@ jobs:
         run: pnpm install --frozen-lockfile
         working-directory: Wonderland_Assistant
       - name: Create a fresh plugin repository from the template
-        run: pnpm run create:plugin -- --template plugins/template_plugin --id ci_plugin_${{ github.run_id }} --name "CI Plugin" --author "CI"
+        run: pnpm run create:plugin -- --template plugins/wla_template_plugin --id wla_ci_plugin_${{ github.run_id }} --name "CI Plugin" --author "CI"
         working-directory: Wonderland_Assistant
       - name: Build the generated plugin
-        run: pnpm --dir plugins/ci_plugin_${{ github.run_id }} run build
+        run: pnpm --dir plugins/wla_ci_plugin_${{ github.run_id }} run build
         working-directory: Wonderland_Assistant
       - name: Verify the generated plugin's packaged backend
-        run: pnpm --dir plugins/ci_plugin_${{ github.run_id }} run test:protocol
+        run: pnpm --dir plugins/wla_ci_plugin_${{ github.run_id }} run test:protocol
         working-directory: Wonderland_Assistant
       - name: Show pinned Rust toolchain
-        working-directory: Wonderland_Assistant/plugins/template_plugin
+        working-directory: Wonderland_Assistant/plugins/wla_template_plugin
         run: rustup show
       - run: pnpm install --frozen-lockfile
-        working-directory: Wonderland_Assistant/plugins/template_plugin
+        working-directory: Wonderland_Assistant/plugins/wla_template_plugin
       - run: pnpm run check
-        working-directory: Wonderland_Assistant/plugins/template_plugin
+        working-directory: Wonderland_Assistant/plugins/wla_template_plugin
       - run: pnpm run package:plugin
-        working-directory: Wonderland_Assistant/plugins/template_plugin
+        working-directory: Wonderland_Assistant/plugins/wla_template_plugin
       - run: node scripts/test-protocol.mjs target/release-package
-        working-directory: Wonderland_Assistant/plugins/template_plugin
+        working-directory: Wonderland_Assistant/plugins/wla_template_plugin

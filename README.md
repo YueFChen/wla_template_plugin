@@ -2,32 +2,32 @@
 
 这是 Wonderland 动态插件的公开起步模板仓库。模板包含最小可运行的 Rust 后端、React UI、严格接口契约、校验与打包工具。插件源码和 Git 历史独立于 Core；模板不预设业务配置和插件依赖。
 
-当前模板插件 ID 为 `wla_template_plugin`，开发版本保持 `0.1.2`。源码仓库与默认检出目录仍为 `template_plugin`；创建其他插件时，初始化脚本会替换插件身份、Rust/npm 元数据、兼容说明和 CI 路径。此前安装的 `template_plugin` 属于另一插件 ID，已有数据和密钥继续保留，不自动迁入新 ID。
+当前模板插件 ID 为 `wla_template_plugin`，开发版本保持 `0.1.2`。源码仓库与默认检出目录为 `wla_template_plugin`；创建其他插件时，初始化脚本会替换插件身份、Rust/npm 元数据、兼容说明和 CI 路径。此前安装的 `template_plugin` 属于另一插件 ID，已有数据和密钥继续保留，不自动迁入新 ID。
 
 ## 创建插件仓库
 
-将本模板仓库检出到 Core checkout 的 `plugins/template_plugin`。在 Core 根目录运行创建命令，它会复制模板到 `plugins/<plugin-id>`，同步插件元数据、安装依赖、校验结构并初始化一个新的 Git 仓库。源模板不会被修改，Core 也不会把新插件加入自身的 Cargo 或 pnpm workspace。
+将本模板仓库检出到 Core checkout 的 `plugins/wla_template_plugin`。在 Core 根目录运行创建命令，它会复制模板到 `plugins/<plugin-id>`，同步插件元数据、安装依赖、校验结构并初始化一个新的 Git 仓库。源模板不会被修改，Core 也不会把新插件加入自身的 Cargo 或 pnpm workspace。
 
 ```powershell
-pnpm run create:plugin -- --id my_plugin --name "我的插件" --author "作者名"
+pnpm run create:plugin -- --id wla_my_plugin --name "我的插件" --author "作者名"
 ```
 
 如果模板仓库没有放在默认路径，可以指定本地目录或 Git 仓库地址：
 
 ```powershell
-pnpm run create:plugin -- --template .\path\to\template --id my_plugin --name "我的插件" --author "作者名"
-pnpm run create:plugin -- --template "https://github.com/<owner>/<repo>.git" --id my_plugin --name "我的插件" --author "作者名"
+pnpm run create:plugin -- --template .\path\to\template --id wla_my_plugin --name "我的插件" --author "作者名"
+pnpm run create:plugin -- --template "https://github.com/<owner>/<repo>.git" --id wla_my_plugin --name "我的插件" --author "作者名"
 ```
 
 创建命令不会提交初始 Git commit 或配置远端。确认生成内容后，在新插件目录自行提交并按需添加远端。
 
 ## 开发与调试
 
-创建成功后，插件仓库位于 `plugins/my_plugin`。以下命令从 Core 根目录执行：
+创建成功后，插件仓库位于 `plugins/wla_my_plugin`。以下命令从 Core 根目录执行：
 
 ```powershell
-pnpm --dir .\plugins\my_plugin run validate
-pnpm --dir .\plugins\my_plugin run debug
+pnpm --dir .\plugins\wla_my_plugin run validate
+pnpm --dir .\plugins\wla_my_plugin run debug
 ```
 
 `debug` 会构建 UI 和后端，再启动 Core 开发版。Core 只在 debug 构建读取开发包路径；安装时仍校验 manifest、contract、兼容性和包文件，并自动启用开发插件，实际打开或调用时才启动后端。请先关闭现有 Core 开发版。修改后端代码后重新运行调试命令；UI 调试入口沿用现有开发工具。
@@ -107,7 +107,7 @@ UI 示例使用共享 `@wonderland/ui/plugin.css`，自动跟随 Core 主题；�
 
 ## CI
 
-CI 会先做独立的元数据与初始化检查，再从公开的 `YueFChen/Wonderland_Assistant` 仓库检出 Core，在 Windows 的 `plugins/template_plugin` 布局中构建和检查插件，并从当前源码创建一个新插件完成构建和协议验证。默认固定已验证 Core 提交 `770461ddc1d54da9ae620892ce8b903adebfe2e7`；可用仓库变量 `WONDERLAND_CORE_COMMIT` 覆盖为另一个经过验证的完整提交。需要测试其他 Core 仓库时，将 `WONDERLAND_CORE_REPOSITORY` 设为其 `owner/name`；私有 Core 仓库还需配置可读取它的 `WONDERLAND_CORE_CHECKOUT_TOKEN` Secret。生成插件的 CI 会使用自己的检出目录作为模板来源，不回退下载旧的远端模板。
+CI 会先做独立的元数据与初始化检查，再从公开的 `YueFChen/Wonderland_Assistant` 仓库检出 Core，在 Windows 的 `plugins/wla_template_plugin` 布局中构建和检查插件，并从当前源码创建一个新插件完成构建和协议验证。默认固定已验证 Core 提交 `770461ddc1d54da9ae620892ce8b903adebfe2e7`；可用仓库变量 `WONDERLAND_CORE_COMMIT` 覆盖为另一个经过验证的完整提交。需要测试其他 Core 仓库时，将 `WONDERLAND_CORE_REPOSITORY` 设为其 `owner/name`；私有 Core 仓库还需配置可读取它的 `WONDERLAND_CORE_CHECKOUT_TOKEN` Secret。生成插件的 CI 会使用自己的检出目录作为模板来源，不回退下载旧的远端模板。
 
 ## Core 0.2.0 与远程访问
 
